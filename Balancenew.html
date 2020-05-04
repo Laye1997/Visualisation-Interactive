@@ -1,0 +1,326 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Projet</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link href="bootstrap/css/bootstrap.min.css"  rel="stylesheet" type="text/css" />
+        <!--link rel="stylesheet" href="libs/bootstrap.min.css"-->
+    </head>
+    <body class="hold-transition sidebar-mini">
+         <div class="">
+  <nav class="navbar navbar-inverse">
+    <div class="container-fluid">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="cartecedeao1.html">CEDEAO</a>
+    </div>
+    <ul class="nav navbar-nav">
+      <li ><a href="cartecedeao1.html">Accueil</a></li>
+      <!-- <li class=""><a href="cartecedeao.html">A propos</a></li> -->
+      <li class="active"><a href="Repartition/courbes.html" >Visualisation des Répartitions Import/Export</a></li>
+      <li><a href="../Heatmap/newevolution.html" >Visualisation des Import/Export (Heatmap)</a></li>
+      <li><a href="../Contribution.html">Contribution des différentes états</a></li>
+      <li><a href="../Heatmap/Balancenew.html">Balance Commerciale</a></li>
+    </ul>
+    <ul class="nav navbar-nav navbar-right">
+      <li class=""><a href="https://github.com/Laye1997/Visualisation-Interactive/wiki/Cahier-d%E2%80%99avancement-pour-le-Projet-de-Data-Visualisation-Interactive" target="_blank">Cahier d'avancement</a></li>
+    </ul>
+    </div>
+  </nav>
+</div>
+
+
+<h1>Evolution de la balance commerciale entre 2013 et 2018</h1>
+    
+<style>
+    body {
+        font: 10px sans-serif;
+    }
+    p {
+      margin: 0px 0px 0px 20px;
+      font-family: 'Montserrat';
+      font-size: 1.93em;
+      font-weight: normal;
+    }
+
+    .axis path,
+    .axis line {
+        fill: none;
+        stroke: #000;
+        shape-rendering: crispEdges;
+    }
+
+    .bar {
+        fill: steelblue;
+    }
+
+    .x.axis path {
+        display: none;
+    }
+</style>
+<body>
+
+  <script src="Heatmap/JS/d3.js"></script>
+  <script type="text/javascript"></script>
+        <script type="text/javascript" src="underscore.js"></script>
+    <script>
+        function getTextWidth(text, fontSize, fontName) {
+            c = document.createElement("canvas");
+            ctx = c.getContext("2d");
+            ctx.font = fontSize + ' ' + fontName;
+            return ctx.measureText(text).width;
+        }
+
+        function DataSegregator(array, on) {
+            var SegData;
+            OrdinalPositionHolder = {
+                valueOf: function () {
+                    thisObject = this;
+                    keys = Object.keys(thisObject);
+                    keys.splice(keys.indexOf("valueOf"), 1);
+                    keys.splice(keys.indexOf("keys"), 1);
+                    return keys.length == 0 ? -1 : d3.max(keys, function (d) { return thisObject[d] })
+                }
+                , keys: function () {
+                    keys = Object.keys(thisObject);
+                    keys.splice(keys.indexOf("valueOf"), 1);
+                    keys.splice(keys.indexOf("keys"), 1);
+                    return keys;
+                }
+            }
+            array[0].map(function (d) { return d[on] }).forEach(function (b) {
+                value = OrdinalPositionHolder.valueOf();
+                OrdinalPositionHolder[b] = OrdinalPositionHolder > -1 ? ++value : 0;
+            })
+
+            SegData = OrdinalPositionHolder.keys().map(function () {
+                return [];
+            });
+
+            array.forEach(function (d) {
+                d.forEach(function (b) {
+                    SegData[OrdinalPositionHolder[b[on]]].push(b);
+                })
+            });
+
+            return SegData;
+        }
+
+
+        Data = [
+{ Date: "2013", Categories: [{ Name: "Total import", Value: 7500 }, { Name: "Export_Reexport", Value: 6300 }, { Name: "Balance_commerciale", Value: 0 }], LineCategory: [{ Name: "Line1", Value: 69 }, { Name: "Line2", Value: 63 }] },
+{ Date: "2014", Categories: [{ Name: "Total import", Value:7500 }, { Name: "Export_Reexport", Value: 9000 }, { Name: "Balance_commerciale", Value: 1800 }], LineCategory: [{ Name: "Line1", Value: 89 }, { Name: "Line2", Value: 96 }] },
+{ Date: "2015", Categories: [{ Name: "Total import", Value: 8000 }, { Name: "Export_Reexport", Value: 8000 }, { Name: "Balance_commerciale", Value: 0 }], LineCategory: [{ Name: "Line1", Value: 63 }, { Name: "Line2", Value: 35 }] },
+{ Date: "2016", Categories: [{ Name: "Total import", Value: 12500 }, { Name: "Export_Reexport", Value: 13000 }, { Name: "Balance_commerciale", Value: 700 }], LineCategory: [{ Name: "Line1", Value: 86 }, { Name: "Line2", Value: 45 }] },
+{ Date: "2017", Categories: [{ Name: "Total import", Value: 6500 }, { Name: "Export_Reexport", Value: 9000 }, { Name: "Balance_commerciale", Value: 2000 }], LineCategory: [{ Name: "Line1", Value: 65 }, { Name: "Line2", Value: 63 }] },
+{ Date: "2018", Categories: [{ Name: "Total import", Value: 7000 }, { Name: "Export_Reexport", Value: 9000 }, { Name: "Balance_commerciale", Value: 1900 }], LineCategory: [{ Name: "Line1", Value: 75 }, { Name: "Line2", Value: 85 }] }
+        ]
+
+        var margin = { top: 20, right: 30, bottom: 60, left: 40 },
+            width = 960 - margin.left - margin.right,
+            height = 500 - margin.top - margin.bottom;
+
+        var textWidthHolder = 0;
+        /// Adding Date in LineCategory
+        Data.forEach(function (d) {
+            d.LineCategory.forEach(function (b) {
+                b.Date = d.Date;
+            })
+        });
+
+
+
+
+        var Categories = new Array();
+        // Extension method declaration
+
+        Categories.pro
+
+        var Data;
+        var ageNames;
+        var x0 = d3.scale.ordinal()
+            .rangeRoundBands([0, width], .1);
+        var XLine = d3.scale.ordinal()
+            .rangeRoundPoints([0, width], .1);
+        var x1 = d3.scale.ordinal();
+
+        var y = d3.scale.linear()
+            .range([height, 0]);
+
+        var YLine = d3.scale.linear().range([height, 0])
+        .domain([0, d3.max(Data, function (d) { return d3.max(d.LineCategory, function (b) { return b.Value }) })]);
+
+        var color = d3.scale.ordinal()
+            .range(["#98abc5", "#8a89a6", "#7b6888", "#6b486b", "#a05d56", "#d0743c", "#ff8c00"]);
+
+        var line = d3.svg.line().x(function (d) {
+            return x0(d.Date) + x0.rangeBand() / 2;
+        }).y(function (d) { return YLine(d.Value) });
+
+
+
+
+        var xAxis = d3.svg.axis()
+            .scale(x0)
+            .orient("bottom");
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .tickFormat(d3.format(".2s"));
+
+        
+        var svg = d3.select("body").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+          .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+
+
+
+
+        // Bar Data categories
+        Data.forEach(function (d) {
+            d.Categories.forEach(function (b) {
+                if (Categories.findIndex(function (c) { return c.Name===b.Name}) == -1) {
+                    b.Type = "bar";
+                    console.log(JSON.stringify(b))
+                    Categories.push(b)
+                }
+            })
+        });
+
+
+
+        // Line Coloring
+        LineColor = d3.scale.ordinal();
+        LineColor.domain(Categories.filter(function (d) { return d.Type == "line" }).map(function (d) { return d.Name }));
+        LineColor.range(["#d40606", "#06bf00", "#98bdc5", "#671919", "#0b172b"])
+        x0.domain(Data.map(function (d) { return d.Date; }));
+        XLine.domain(Data.map(function (d) { return d.Date; }));
+        x1.domain(Categories.filter(function (d) { return d.Type == "bar" }).map(function (d) { return d.Name})).rangeRoundBands([0, x0.rangeBand()]);
+        y.domain([0, d3.max(Data, function (d) { return d3.max(d.Categories, function (d) { return d.Value; }); })]);
+
+        svg.append("g")
+            .attr("class", "x axis")
+            .attr("transform", "translate(0," + height + ")")
+            .call(xAxis);
+
+        svg.append("g")
+            .attr("class", "y axis")
+            .call(yAxis)
+          .append("text")
+            .attr("transform", "rotate(-90)")
+            .attr("y", 6)
+            .attr("dy", ".71em")
+            .style("text-anchor", "end")
+            .text("Valeurs");
+
+
+        var state = svg.selectAll(".state")
+            .data(Data)
+          .enter().append("g")
+            .attr("class", "state")
+            .attr("transform", function (d) { return "translate(" + x0(d.Date) + ",0)"; });
+
+        state.selectAll("rect")
+            .data(function (d) { return d.Categories; })
+          .enter().append("rect")
+            .attr("width", x1.rangeBand())
+            .attr("x", function (d) { return x1(d.Name); })
+            .attr("y", function (d) { return y(d.Value); })
+            //.attr("height", function (d) { return height - y(d.Value); })
+            .style("fill", function (d) { return color(d.Name); })
+            .transition().delay(500).attrTween("height", function (d) {
+                var i = d3.interpolate(0, height - y(d.Value));
+                return function (t)
+                {
+                    return i(t);
+                }
+            });
+
+
+        // Legends
+
+        var LegendHolder = svg.append("g").attr("class", "legendHolder");
+        var legend = LegendHolder.selectAll(".legend")
+            .data(Categories.map(function (d) { return {"Name":d.Name,"Type":d.Type}}))
+          .enter().append("g")
+            .attr("class", "legend")
+            .attr("transform", function (d, i) { return "translate(0," +( height+ margin.bottom/2 )+ ")"; })
+            .each(function (d,i) {
+                //  Legend Symbols
+
+
+                d3.select(this).append("rect")
+                .attr("width", function () { return 18 })
+                .attr("x", function (b) {
+
+                    left = (i+1) * 15 + i * 18 + i * 5 + textWidthHolder;
+                    return left;
+                })
+                 .attr("y", function (b) { return b.Type == 'bar'?0:7})
+                .attr("height", function (b) { return b.Type== 'bar'? 18:5 })
+                .style("fill", function (b) { return b.Type == 'bar' ? color(d.Name) : LineColor(d.Name) });
+
+                //  Legend Text
+
+                d3.select(this).append("text")
+                .attr("x", function (b) {
+
+                    left = (i+1) * 15 + (i+1) * 18 + (i + 1) * 5 + textWidthHolder;
+
+                    return left;
+                })
+                .attr("y", 9)
+                .attr("dy", ".35em")
+                .style("text-anchor", "start")
+                .text(d.Name);
+
+                textWidthHolder += getTextWidth(d.Name, "10px", "calibri");
+            });
+
+
+        // Legend Placing
+
+        d3.select(".legendHolder").attr("transform", function (d) {
+            thisWidth = d3.select(this).node().getBBox().width;
+            return "translate(" + ((width) / 2 - thisWidth / 2) + ",0)";
+        })
+
+
+    </script>
+    
+        <div class="panel">
+                <div class="panel-body " >
+    <div class=" " style="color:black">
+        <h1 align="center" > Evolution du solde de la balance commerciale entre 2013 et 2018</h1>
+        </div></div></div>
+            <p class="panel-body ">
+            Le déficit commercial4
+ de l'Union s'est établi à 1.927,5 milliards ou 2,8% du PIB en 2018 contre 105,2
+milliards ou 0,2% du PIB en 2017, traduisant une détérioration de 2,6 points de pourcentage. Cette
+évolution est imputable principalement à l'alourdissement de la facture pétrolière, à la suite de la
+remontée des cours mondiaux ainsi qu'à la hausse des achats des biens d'équipement et
+intermédiaires dans un contexte de repli des ventes à l'extérieur de cacao.
+Hors la Côte d'Ivoire, seul pays de l'Union à réaliser un excédent structurel de la balance commerciale,
+ce déficit ressortirait à 5,0% du PIB en 2018 contre 4,0% en 2017, soit une détérioration de 1,0 point de
+pourcentage. Les termes de l'échange de l'Union, déterminés à partir de l'évolution des prix moyens des produits
+échangés, se sont détériorés de 3,0% en 2018, après une amélioration de 1,1% en 2017.
+ Le taux de couverture des importations par les exportations s'est établi à 76,7% en 2018 contre 83,3% un an
+auparavant, soit une baisse de 6,6 points de pourcentage d'une année à l'autre, en liaison avec un
+accroissement plus élevé des importations de biens et services (+10,1%) par rapport aux exportations
+(+1,3%). Le taux d'ouverture commerciale6
+ de l'Union a fléchi de 0,5 point de pourcentage pour s'établir
+à 29,3% en 2018, après une réalisation de 29,8% en 2017 dans un contexte d'une hausse relativement
+faible des échanges de biens et services (+6,1%) par rapport à la croissance économique de l'Union
+(+8,0%).
+</p>
+     </div>
+    </div>
+    </div>
+</body>
+</html>
